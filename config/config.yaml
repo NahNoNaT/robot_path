@@ -1,0 +1,11 @@
+grid_size: 10     # or 15
+num_goal_cells: 10
+items_per_goal: 5
+carry_capacity: 3
+num_starts: 4     # the 4 corners considered possible starts
+obstacle_prob: 0.12
+random_seed: 42
+visualize: true
+render_fps: 4
+step_delay: 0.3
+max_steps: 500
