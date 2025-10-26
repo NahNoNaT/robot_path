@@ -31,8 +31,10 @@ class SimpleMDPModel:
         self.step_cost = -1.0
         self.pick_reward = 10.0
         self.return_reward = 20.0
+        self.start = gridworld.start
 
     def is_terminal(self, goals_state):
+        # terminal if all goals are satisfied and robot is at start
         return sum(goals_state) == 0
 
     def step(self, state, action):
@@ -61,8 +63,36 @@ class SimpleMDPModel:
                 new_goals[idx] -= pick
                 carried += pick
                 reward += pick * self.pick_reward
-        # if at start and carrying >0, return items (drop)
-        if pos in self.gw.corners() and carried > 0:
+        # if at start and carrying > 0, return items (drop)
+        if pos == self.start and carried > 0:
             reward += carried * self.return_reward
             carried = 0
         return ((nr, nc), carried, tuple(new_goals)), reward
+    def get_all_states(self):
+        """
+        Generate all possible states for tabular RL.
+        State: (position, carried_items, goals_state)
+        """
+        # Get all valid positions (non-obstacle cells)
+        positions = []
+        for r in range(self.size):
+            for c in range(self.size):
+                if self.gw.grid[r,c] != 1:  # not obstacle
+                    positions.append((r,c))
+                    
+        # All possible carried amounts
+        carried_amounts = range(self.capacity + 1)
+        
+        # All possible goal states
+        # For each goal, items can range from 0 to initial amount
+        goal_ranges = [range(g + 1) for g in self.goal_initial]
+        goal_states = list(itertools.product(*goal_ranges))
+        
+        # Generate all combinations
+        states = []
+        for pos in positions:
+            for carried in carried_amounts:
+                for goals in goal_states:
+                    states.append((pos, carried, goals))
+                    
+        return states

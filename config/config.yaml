@@ -1,11 +1,21 @@
-grid_size: 10     # or 15
-num_goal_cells: 10
-items_per_goal: 5
-carry_capacity: 3
-num_starts: 4     # the 4 corners considered possible starts
-obstacle_prob: 0.12
-random_seed: 42
+# Grid parameters
+grid_size: 10        # Grid size for RL
+num_goal_cells: 3   # Num goals for RL
+items_per_goal: 2    # Items per goal cell
+obstacle_prob: 0.1
+
+# RL parameters
+carry_capacity: 1  # Max items robot can carry
+gamma: 0.99        # Discount factor
+theta: 0.001       # Convergence threshold
+max_iters: 1000    # Maximum iterations for value iteration
+
+# Visualization
 visualize: true
-render_fps: 4
-step_delay: 0.3
-max_steps: 500
+render_fps: 2
+step_delay: 1.0
+max_steps: 100
+
+# Other
+random_seed: 0
+num_starts: 4

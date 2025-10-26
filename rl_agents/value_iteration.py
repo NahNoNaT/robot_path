@@ -12,59 +12,60 @@ class ValueIterationAgent:
         self.gamma = gamma
         self.theta = theta
         self.max_iters = max_iters
-        self.V = {}  # dict for values keyed by state
+        self.V = defaultdict(float)  # Initialize values to 0
         self.pi = {}
 
-    def run(self, start_state, max_steps=10000):
-        # We'll do asynchronous exploration-limited VI using simple back-up on visited states from BFS enum
-        # For demonstration we do Monte Carlo style enumeration by BFS from start considering limited depth
-        from collections import deque
-        visited = set()
-        q = deque([start_state])
-        visited.add(start_state)
-        while q:
-            s = q.popleft()
-            # expand neighbors via mdp actions
-            for action in self.mdp.actions:
-                ns, _ = self.mdp.step(s, action)
-                if ns not in visited:
-                    visited.add(ns)
-                    q.append(ns)
-            # also stop if too many states
-            if len(visited) > 20000:
-                break
-        # initialize V
-        for s in visited:
-            self.V[s] = 0.0
-        it = 0
-        while True:
+    def value_iteration(self):
+        iteration = 0
+        while iteration < self.max_iters:
             delta = 0
-            for s in list(visited):
-                if self.mdp.is_terminal(s[2]):
+            # Loop through all states
+            for state in self.mdp.get_all_states():
+                if self.mdp.is_terminal(state[2]):
                     continue
-                best = -1e9
-                for a in self.mdp.actions:
-                    ns, r = self.mdp.step(s,a)
-                    val = r + self.gamma * self.V.get(ns, 0.0)
-                    if val > best:
-                        best = val
-                delta = max(delta, abs(self.V[s] - best))
-                self.V[s] = best
-            it += 1
-            if delta < self.theta or it >= self.max_iters:
+                    
+                # Store old value
+                old_v = self.V[state]
+                
+                # Compute new value using Bellman equation
+                max_v = float('-inf')
+                for action in self.mdp.actions:
+                    # Consider all possible next states and their probabilities
+                    next_state, reward = self.mdp.step(state, action)
+                    v = reward + self.gamma * self.V[next_state]
+                    max_v = max(max_v, v)
+                
+                # Update value
+                self.V[state] = max_v
+                delta = max(delta, abs(old_v - self.V[state]))
+            
+            # Check convergence
+            if delta < self.theta:
                 break
-        # extract greedy policy for visited states
-        for s in visited:
-            if self.mdp.is_terminal(s[2]):
-                self.pi[s] = (0,0)
+                
+            iteration += 1
+
+    def extract_policy(self):
+        # Extract optimal policy from value function
+        for state in self.mdp.get_all_states():
+            if self.mdp.is_terminal(state[2]):
+                self.pi[state] = (0,0)
                 continue
-            best_a = None
-            best_v = -1e9
-            for a in self.mdp.actions:
-                ns, r = self.mdp.step(s,a)
-                val = r + self.gamma * self.V.get(ns, 0.0)
-                if val > best_v:
-                    best_v = val
-                    best_a = a
-            self.pi[s] = best_a
+                
+            # Find action that maximizes value
+            max_v = float('-inf')
+            best_action = None
+            
+            for action in self.mdp.actions:
+                next_state, reward = self.mdp.step(state, action)
+                v = reward + self.gamma * self.V[next_state]
+                if v > max_v:
+                    max_v = v
+                    best_action = action
+                    
+            self.pi[state] = best_action
+
+    def run(self, start_state, max_steps=10000):
+        self.value_iteration()
+        self.extract_policy()
         return self.pi, self.V

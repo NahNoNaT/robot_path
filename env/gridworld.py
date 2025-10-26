@@ -36,10 +36,11 @@ class GridWorld:
                 for c in range(self.size):
                     if random.random() < self.obstacle_prob:
                         self.grid[r,c] = 1
-            # pick goal cells (cannot be corners)
+            # choose start
+            self.start = chosen_start or random.choice(self.corners())
+            # pick goal cells (cannot be start)
             all_positions = [(r,c) for r in range(self.size) for c in range(self.size)]
-            forbidden = set(self.corners())
-            candidates = [p for p in all_positions if p not in forbidden]
+            candidates = [p for p in all_positions if p not in [self.start]]
             goals = random.sample(candidates, self.num_goal_cells)
             self.goal_cells = {}
             for g in goals:
@@ -49,8 +50,7 @@ class GridWorld:
             # ensure corners are not obstacles
             for corner in self.corners():
                 self.grid[corner] = 0
-            # choose start
-            self.start = chosen_start or random.choice(self.corners())
+
             # ensure reachability
             if self._all_goals_reachable():
                 break
