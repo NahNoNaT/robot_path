@@ -29,7 +29,7 @@ class SarsaAgent:
                 a2 = self.choose_action(ns)
                 self.Q[state][a] += self.alpha * (r + self.gamma * self.Q[ns][a2] - self.Q[state][a])
                 state, a = ns, a2
-                if self.mdp.is_terminal(state[2]):
+                if self.mdp.is_terminal(state):
                     break
         pi = {}
         for s, actions in self.Q.items():

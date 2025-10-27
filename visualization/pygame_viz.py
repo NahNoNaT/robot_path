@@ -51,9 +51,11 @@ def draw_grid(surface, gw, cellsize):
             if (r,c) in gw.goal_cells and gw.goal_cells[(r,c)] > 0:
                 surface.blit(text, text_rect)
 
-def animate_path(gw, path, fps=2, title="Robot", step_delay=5.0, rewards=None):
+def animate_path(gw, path, fps=2, title="Robot", step_delay=5.0, rewards=None, goal_history=None, goal_positions=None):
     """
     rewards: optional list of reward values aligned with transitions (len = len(path)-1)
+    goal_history: sequence of goal-count tuples per timestep (aligned with path)
+    goal_positions: ordered goal locations matching entries in goal_history tuples
     """
     pygame.init()
     pygame.font.init()
@@ -68,7 +70,11 @@ def animate_path(gw, path, fps=2, title="Robot", step_delay=5.0, rewards=None):
     running = True
     step = 0
     total_reward = 0
-    initial_items = sum(gw.goal_cells.values())  # Track initial total items
+    has_goal_history = goal_history is not None and goal_positions is not None
+    if has_goal_history and len(goal_history) > 0:
+        initial_items = sum(goal_history[0])
+    else:
+        initial_items = sum(gw.goal_cells.values())
     remaining_items = initial_items  # Track remaining items
     items_collected = 0
 
@@ -79,15 +85,24 @@ def animate_path(gw, path, fps=2, title="Robot", step_delay=5.0, rewards=None):
                 running = False
 
         screen.fill(COLORS['bg'])
+
+        if has_goal_history and len(goal_history) > 0:
+            state_idx = min(step, len(goal_history) - 1)
+            goals_state = goal_history[state_idx]
+            for idx, goal_pos in enumerate(goal_positions):
+                gw.goal_cells[goal_pos] = goals_state[idx]
+                gw.grid[goal_pos] = 2 if goals_state[idx] > 0 else 0
+
         draw_grid(screen, gw, cellsize)
 
-        # Draw path up to current step
+        # Draw path marker for empty cells only
         for i, p in enumerate(path[:step+1]):
             r, c = p
-            x = c * (cellsize + MARGIN) + MARGIN
-            y = r * (cellsize + MARGIN) + MARGIN
-            center = (x + cellsize//2, y + cellsize//2)
-            pygame.draw.circle(screen, COLORS['path'], center, cellsize//6)
+            if gw.grid[r, c] == 0 and (r, c) not in gw.goal_cells:
+                x = c * (cellsize + MARGIN) + MARGIN
+                y = r * (cellsize + MARGIN) + MARGIN
+                center = (x + cellsize//2, y + cellsize//2)
+                pygame.draw.circle(screen, COLORS['path'], center, cellsize//6)
 
         # Draw robot at current position
         if step < len(path):
@@ -104,7 +119,10 @@ def animate_path(gw, path, fps=2, title="Robot", step_delay=5.0, rewards=None):
             total_reward += current_reward
             
         # Calculate remaining items
-        remaining_items = sum(gw.goal_cells.values())
+        if has_goal_history and len(goal_history) > 0:
+            remaining_items = sum(goal_history[min(step, len(goal_history) - 1)])
+        else:
+            remaining_items = sum(gw.goal_cells.values())
         items_collected = initial_items - remaining_items
 
         # Update display information

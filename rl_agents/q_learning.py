@@ -28,7 +28,7 @@ class QLearningAgent:
                 best_next = max(self.Q[ns].values()) if ns in self.Q else 0.0
                 self.Q[state][a] += self.alpha * (r + self.gamma * best_next - self.Q[state][a])
                 state = ns
-                if self.mdp.is_terminal(state[2]):
+                if self.mdp.is_terminal(state):
                     break
         # derive policy
         pi = {}

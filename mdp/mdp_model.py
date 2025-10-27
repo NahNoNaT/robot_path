@@ -33,9 +33,15 @@ class SimpleMDPModel:
         self.return_reward = 20.0
         self.start = gridworld.start
 
-    def is_terminal(self, goals_state):
-        # terminal if all goals are satisfied and robot is at start
-        return sum(goals_state) == 0
+    def is_terminal(self, state):
+        """
+        Terminal when:
+        - no remaining items at any goal
+        - robot has returned to the start cell
+        - robot is not carrying any items
+        """
+        pos, carried, goals_state = state
+        return sum(goals_state) == 0 and carried == 0 and pos == self.start
 
     def step(self, state, action):
         """

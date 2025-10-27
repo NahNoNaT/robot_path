@@ -30,6 +30,6 @@ class TDLambdaAgent:
                     self.V[s] += self.alpha * delta * E[s]
                     E[s] = self.gamma * self.lam * E[s]
                 state = ns
-                if self.mdp.is_terminal(state[2]):
+                if self.mdp.is_terminal(state):
                     break
         return self.policy, self.V

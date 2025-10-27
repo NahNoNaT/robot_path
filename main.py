@@ -13,7 +13,7 @@ from mdp.mdp_model import SimpleMDPModel
 from rl_agents.value_iteration import ValueIterationAgent
 from utils import set_seed
 
-def load_config(path="E:\CN_AI\FA2025\REL\config\config.yaml"):
+def load_config(path="C:\\Users\\ADMIN\\OneDrive\\Documents\\GitHub\\robot_path\\config\\config.yaml"):
     with open(path,"r",encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     return cfg
@@ -52,6 +52,7 @@ def run_rl_demo(cfg):
     if cfg.get("visualize", True):
         current_state = start_state
         path = [current_state[0]]
+        state_history = [current_state]
         rewards = []  # Track rewards
         steps = 0
         max_steps = cfg.get("max_steps", 500)
@@ -60,7 +61,7 @@ def run_rl_demo(cfg):
         sim_gw = gw.copy()
         
         while steps < max_steps:
-            if mdp.is_terminal(current_state[2]) and current_state[0] == gw.start:
+            if mdp.is_terminal(current_state):
                 print("All items collected and returned to start.")
                 break
 
@@ -72,23 +73,19 @@ def run_rl_demo(cfg):
             next_state, reward = mdp.step(current_state, action)
             rewards.append(reward)
             
-            # Update gridworld state to match MDP state
-            pos, carried, goals = next_state
-            for idx, goal_pos in enumerate(mdp.goal_positions):
-                if goal_pos in sim_gw.goal_cells:
-                    sim_gw.goal_cells[goal_pos] = goals[idx]
-                    if goals[idx] == 0:
-                        sim_gw.grid[goal_pos] = 0
-            
             current_state = next_state
             path.append(current_state[0])
+            state_history.append(current_state)
             steps += 1
         
         print(f"Path length: {len(path)}")
+        goal_history = [state[2] for state in state_history]
         animate_path(sim_gw, path, 
                     fps=cfg.get("render_fps", 4),
                     step_delay=cfg.get("step_delay", 0.3),
-                    rewards=rewards)  # Pass rewards to visualization
+                    rewards=rewards,
+                    goal_history=goal_history,
+                    goal_positions=mdp.goal_positions)  # Pass rewards to visualization
 
     print("Demo finished.")
 

@@ -24,6 +24,6 @@ class TD0Agent:
                 ns, r = self.mdp.step(state, a)
                 self.V[state] += self.alpha * (r + self.gamma * self.V[ns] - self.V[state])
                 state = ns
-                if self.mdp.is_terminal(state[2]):
+                if self.mdp.is_terminal(state):
                     break
         return self.policy, self.V

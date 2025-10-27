@@ -26,7 +26,8 @@ def manhattan(a,b):
 
 def set_seed(seed=None):
     if seed is None:
-        seed = np.random.SeedSequence().entropy
-    random.seed(seed)
-    np.random.seed(seed)
-    return seed
+        seed = np.random.SeedSequence().generate_state(1, dtype='uint32')[0]
+    seed_int = int(seed) % (2**32)
+    random.seed(seed_int)
+    np.random.seed(seed_int)
+    return seed_int

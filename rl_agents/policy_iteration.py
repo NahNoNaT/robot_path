@@ -46,7 +46,7 @@ class PolicyIterationAgent:
             while True:
                 delta = 0
                 for s in visited:
-                    if self.mdp.is_terminal(s[2]):
+                    if self.mdp.is_terminal(s):
                         continue
                     
                     old_v = self.V[s]
@@ -61,7 +61,7 @@ class PolicyIterationAgent:
             # Policy improvement
             policy_stable = True
             for s in visited:
-                if self.mdp.is_terminal(s[2]):
+                if self.mdp.is_terminal(s):
                     continue
                     
                 old_a = self.pi[s]

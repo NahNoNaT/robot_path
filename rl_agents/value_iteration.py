@@ -21,7 +21,7 @@ class ValueIterationAgent:
             delta = 0
             # Loop through all states
             for state in self.mdp.get_all_states():
-                if self.mdp.is_terminal(state[2]):
+                if self.mdp.is_terminal(state):
                     continue
                     
                 # Store old value
@@ -48,7 +48,7 @@ class ValueIterationAgent:
     def extract_policy(self):
         # Extract optimal policy from value function
         for state in self.mdp.get_all_states():
-            if self.mdp.is_terminal(state[2]):
+            if self.mdp.is_terminal(state):
                 self.pi[state] = (0,0)
                 continue
                 
