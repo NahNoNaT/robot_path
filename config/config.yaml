@@ -1,11 +1,11 @@
 # Grid parameters
 grid_size: 10        # Grid size for RL
-num_goal_cells: 10   # Number of goal cells (10 goals x 5 items = 50 orders)
-items_per_goal: 5    # Items per goal cell
+num_goal_cells: 4   # Number of goal cells (10 goals x 5 items = 50 orders)
+items_per_goal: 3    # Items per goal cell
 obstacle_prob: 0.12
 
 # RL parameters
-carry_capacity: 3  # Max items robot can carry
+carry_capacity: 2  # Max items robot can carry
 gamma: 0.99        # Discount factor
 theta: 0.001       # Convergence threshold
 max_iters: 1000    # Maximum iterations for value iteration
