@@ -1,20 +1,24 @@
 # Grid parameters
 grid_size: 10        # Grid size for RL
-num_goal_cells: 4   # Number of goal cells (10 goals x 5 items = 50 orders)
-items_per_goal: 3    # Items per goal cell
+num_goal_cells: 10   # Number of goal cells (10 goals x 5 items = 50 orders)
+items_per_goal: 5    # Items per goal cell
 obstacle_prob: 0.12
 
 # RL parameters
-carry_capacity: 2  # Max items robot can carry
+agent: q_learning   # options: value_iteration, q_learning
+carry_capacity: 3  # Max items robot can carry
 gamma: 0.99        # Discount factor
 theta: 0.001       # Convergence threshold
 max_iters: 1000    # Maximum iterations for value iteration
+alpha: 0.5         # Q-learning learning rate
+epsilon: 0.1       # Q-learning exploration rate
+episodes: 500      # Q-learning training episodes
 
 # Visualization
 visualize: true
 render_fps: 2
 step_delay: 1.0
-max_steps: 100
+max_steps: 1000
 
 # Other
 random_seed: null  # Set to an integer for reproducible layouts, null for fresh randomness

@@ -11,10 +11,11 @@ from env.gridworld import GridWorld
 from visualization.pygame_viz import animate_path
 from mdp.mdp_model import SimpleMDPModel
 from rl_agents.value_iteration import ValueIterationAgent
+from rl_agents.q_learning import QLearningAgent
 from utils import set_seed
 
 def load_config(path="C:\\Users\\ADMIN\\OneDrive\\Documents\\GitHub\\robot_path\\config\\config.yaml"):
-    with open(path,"r",encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     return cfg
 
@@ -24,29 +25,55 @@ def run_rl_demo(cfg):
     
     # Create gridworld
     gw = GridWorld(size=cfg.get("grid_size",10),
-                  num_goal_cells=cfg.get("num_goal_cells",5), # Reduced for RL
-                  items_per_goal=cfg.get("items_per_goal",3),
+                  num_goal_cells=cfg.get("num_goal_cells",10), # Reduced for RL
+                  items_per_goal=cfg.get("items_per_goal",5),
                   obstacle_prob=cfg.get("obstacle_prob", 0.1),
                   seed=cfg.get("random_seed", None))
     
     print("Start:", gw.start)
     print("Goals:", list(gw.goal_cells.items())[:6], " total items:", gw.goals_remaining())
 
-    # Create MDP model and run Value Iteration
+    # Create MDP model
     mdp = SimpleMDPModel(gw, carry_capacity=cfg.get("carry_capacity",3))
-    vi = ValueIterationAgent(mdp, 
-                           gamma=cfg.get("gamma", 0.99),
-                           theta=cfg.get("theta", 1e-3),
-                           max_iters=cfg.get("max_iters", 1000))
 
     # Initial state: (position, items carried, goal states)
     goals_state = tuple([gw.items_per_goal]*len(mdp.goal_positions))
     start_state = (gw.start, 0, goals_state)
     
-    # Run value iteration
-    print("Running Value Iteration...")
-    pi, V = vi.run(start_state)
-    print(f"Value iteration complete. Policy size: {len(pi)}")
+    # Select and run RL agent
+    agent_name = cfg.get("agent", "value_iteration").lower()
+    if agent_name in ["q_learning", "q-learning", "qlearning", "ql"]:
+        print("Running Q-Learning...")
+        q_agent = QLearningAgent(
+            mdp,
+            alpha=cfg.get("alpha", 0.5),
+            gamma=cfg.get("gamma", 0.99),
+            epsilon=cfg.get("epsilon", 0.1),
+            episodes=cfg.get("episodes", 500),
+            max_steps=cfg.get("max_steps", 500),
+        )
+        pi, _, metrics, ep_rewards, ep_lengths = q_agent.run(
+            start_state,
+            log_every=cfg.get("episode_log_every", 100),
+            verbose=cfg.get("verbose", True),
+        )
+        print(f"Q-Learning complete. Policy size: {len(pi)}")
+        print("Training summary:")
+        print(f"- Episodes: {metrics['episodes']}")
+        print(f"- Success rate: {metrics['success_rate']*100:.1f}% ({metrics['successes']}/{metrics['episodes']})")
+        print(f"- Avg reward: {metrics['avg_reward']:.2f} (last50: {metrics['avg_reward_last_50']:.2f})")
+        print(f"- Best reward: {metrics['best_reward']:.2f}")
+        print(f"- Avg steps: {metrics['avg_steps']:.1f}")
+    else:
+        print("Running Value Iteration...")
+        vi = ValueIterationAgent(
+            mdp,
+            gamma=cfg.get("gamma", 0.99),
+            theta=cfg.get("theta", 1e-3),
+            max_iters=cfg.get("max_iters", 1000),
+        )
+        pi, _ = vi.run(start_state)
+        print(f"Value iteration complete. Policy size: {len(pi)}")
 
     # Generate path using policy
     if cfg.get("visualize", True):
@@ -55,7 +82,7 @@ def run_rl_demo(cfg):
         state_history = [current_state]
         rewards = []  # Track rewards
         steps = 0
-        max_steps = cfg.get("max_steps", 500)
+        max_steps = cfg.get("max_steps", 1000)
         
         # Create a copy of gridworld for simulation
         sim_gw = gw.copy()
